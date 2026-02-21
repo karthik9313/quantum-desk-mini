@@ -1,10 +1,16 @@
 import { messagesRepository } from "@/lib/repositories/messages.repo";
+import { realtimeEmitter } from "@/lib/realtime/emitter"
 
 export const messagesService = {
     async getMessagesBasedOnTicketId(ticketId: string) {
         if (ticketId.trim().length <= 0)
             throw new Error("Ticket Id is required");
-        return messagesRepository.getMessagesBasedOnTicketId(ticketId)
+        const message = await messagesRepository.getMessagesBasedOnTicketId(ticketId)
+
+        // emit event on message created.
+        realtimeEmitter.messageCreated(ticketId, message)
+
+        return message
     },
 
     async addMessage(data: any) {

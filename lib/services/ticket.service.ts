@@ -1,4 +1,5 @@
 import { ticketRepository } from "@/lib/repositories/ticket.repo";
+import { realtimeEmitter } from "@/lib/realtime/emitter"
 
 export const ticketService = {
     async createTicket(data: any) {
@@ -16,6 +17,10 @@ export const ticketService = {
     },
 
     async updateStatus(ticketId: string, status: string) {
-        return ticketRepository.updateStatus(ticketId, status);
+        const ticket = await ticketRepository.updateStatus(ticketId, status);
+
+        // emit event on ticket status updates
+        realtimeEmitter.ticketUpdated(ticketId, ticket)
+        return ticket;
     }
 };
