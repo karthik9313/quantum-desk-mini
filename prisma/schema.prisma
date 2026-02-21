@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"  
+}
+
+enum UserRole {
+  CUSTOMER
+  AGENT
+}
+
+enum TicketStatus {
+  OPEN
+  PENDING
+  RESOLVED
+}
+
+model User {
+
+  id   String   @id @default(uuid())
+  name String
+  role UserRole
+
+  createdTickets  Ticket[] @relation("TicketCreator")
+  assignedTickets Ticket[] @relation("TicketAssignee")
+
+  messages Message[]
+
+  createdAt DateTime @default(now())
+
+  @@index([role])
+
+}
+
+model Ticket {
+
+  id     String       @id @default(uuid())
+  title  String
+  status TicketStatus @default(OPEN)
+
+  createdById  String
+  assignedToId String?
+
+  createdBy User @relation("TicketCreator", fields: [createdById], references: [id])
+
+  assignedTo User? @relation("TicketAssignee", fields: [assignedToId], references: [id])
+
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, updatedAt])
+  @@index([createdById])
+  @@index([assignedToId])
+
+}
+
+model Message {
+
+  id String @id @default(uuid())
+
+  ticketId String
+  authorId String
+
+  body String
+
+  ticket Ticket @relation(fields: [ticketId], references: [id])
+
+  author User @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([ticketId, createdAt])
+
+}
