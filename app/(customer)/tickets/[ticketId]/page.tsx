@@ -2,23 +2,31 @@
 
 import { useEffect, useState } from "react"
 import { useTicketRealtime } from "@/lib/realtime/useTicketRealTime"
+import { useParams } from "next/navigation"
 
 export default function TicketDetailPage({ params }: any) {
 
-    const { ticketId } = params
+    //const { ticketId } = params
+    const { ticketId } = useParams<{ ticketId: string }>()
 
     const [messages, setMessages] = useState<any[]>([])
+    const [title, setTitle] = useState<string>("")
     const [text, setText] = useState("")
 
     useEffect(() => {
         fetch(`/api/tickets/${ticketId}`)
             .then(res => res.json())
-            .then(data => setMessages(data.messages))
+            .then(data => { setMessages(data.messages); setTitle(data.title) })
 
     }, [ticketId])
 
     useTicketRealtime(ticketId, (message) => {
-        setMessages(prev => [...prev, message])
+        console.log("Page Message:", message)
+        setMessages(prev => {
+            if (prev.some(m => m.id === message.id))
+                return prev
+            return [...prev, message]
+        })
     })
 
     async function sendMessage() {
@@ -38,7 +46,7 @@ export default function TicketDetailPage({ params }: any) {
     return (
         <div>
 
-            <h2>Ticket</h2>
+            <h2>Ticket - {ticketId} - {title} - Messages</h2>
 
             <div>
                 {messages.map(msg => (
@@ -50,7 +58,7 @@ export default function TicketDetailPage({ params }: any) {
                 ))}
             </div>
 
-            <input
+            <input style={{ border: "1px solid red" }}
                 value={text}
                 onChange={e => setText(e.target.value)}
             />

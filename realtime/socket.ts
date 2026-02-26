@@ -1,3 +1,16 @@
-import { io } from "socket.io-client"
+import { Server } from "socket.io"
 
-export const socket = io("http://localhost:3001", { autoConnect: true })
+declare global {
+    var io: Server | undefined
+}
+
+export function getIO(): Server {
+    if (!global.io) {
+        global.io = new Server({
+            cors: {
+                origin: "*"
+            }
+        })
+    }
+    return global.io
+}

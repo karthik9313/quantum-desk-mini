@@ -1,34 +1,55 @@
 import { createServer } from "http"
-import { Server } from "socket.io"
+import { getIO } from "./socket"
 
-const httpServer = createServer()
+const io = getIO()
 
-export const io = new Server(httpServer, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
+const httpServer = createServer(async (req, res) => {
+
+    if (req.method === "POST" && req.url === "/emit") {
+
+        let body = ""
+
+        req.on("data", chunk => {
+            body += chunk
+        })
+
+        req.on("end", () => {
+
+            const { ticketId, message } = JSON.parse(body)
+
+            console.log("Realtime server emitting:", message.id)
+
+            io.to(ticketId).emit("message:created", message)
+
+            res.writeHead(200)
+            res.end("OK")
+
+        })
+
+        return
     }
+
+    res.writeHead(404)
+    res.end()
+
 })
 
-io.on("connection", (socket) => {
+io.attach(httpServer)
+
+io.on("connection", socket => {
+
     console.log("Client connected:", socket.id)
 
-    socket.on("join-ticket", (ticketId: string) => {
+    socket.on("join-ticket", ticketId => {
+
+        console.log("Joining:", ticketId)
+
         socket.join(ticketId)
-        console.log(`Socket ${socket.id} joined ticket ${ticketId}`)
+
     })
 
-    socket.on("leave-ticket", (ticketId: string) => {
-        socket.leave(ticketId)
-    })
-
-    socket.on("disconnect", () => {
-        console.log("Client disconnected:", socket.id)
-    })
 })
 
-const PORT = 3001
-
-httpServer.listen(PORT, () => {
-    console.log(`Realtime server running on port ${PORT}`)
+httpServer.listen(3001, () => {
+    console.log("Realtime server running on port 3001")
 })

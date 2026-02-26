@@ -4,7 +4,7 @@ import { ticketService } from "@/lib/services/ticket.service";
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
-
+        console.log("Search Params:", searchParams);
         const userId = searchParams.get("userId");
         const role = searchParams.get("role");
 

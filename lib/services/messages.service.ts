@@ -7,16 +7,17 @@ export const messagesService = {
             throw new Error("Ticket Id is required");
         const message = await messagesRepository.getMessagesBasedOnTicketId(ticketId)
 
-        // emit event on message created.
-        realtimeEmitter.messageCreated(ticketId, message)
+
 
         return message
     },
 
     async addMessage(data: any) {
-        if (!data.title)
-            throw new Error("Title required");
-        return messagesRepository.addMessage(data);
+        const message = await messagesRepository.addMessage(data);
+
+        // emit event on message created.
+        realtimeEmitter.messageCreated(data.ticketId, message)
+        return message;
     },
 
     async editMessage(messageId: string, data: any) {

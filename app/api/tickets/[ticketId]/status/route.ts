@@ -1,12 +1,13 @@
 import { ticketService } from "@/lib/services/ticket.service";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function PATCH(req: NextRequest, { params }: { params: { ticketId: string } }) {
+export async function PATCH(req: NextRequest, context: { params: Promise<{ ticketId: string }> }) {
     try {
         const body = await req.json();
+        const { ticketId } = await context.params
 
         const ticket = await ticketService.updateStatus(
-            params.ticketId,
+            ticketId,
             body.status
         );
 

@@ -1,13 +1,24 @@
-import { io } from "@/realtime/server"
-import { EVENTS } from "@/realtime/events"
-
 export const realtimeEmitter = {
 
-    messageCreated(ticketId: string, message: any) {
-        io.to(ticketId).emit(EVENTS.MESSAGE_CREATED, message)
-    },
+    async messageCreated(ticketId: string, message: any) {
 
-    ticketUpdated(ticketId: string, ticket: any) {
-        io.to(ticketId).emit(EVENTS.TICKET_UPDATED, ticket)
+        console.log("Sending to realtime server:", message.id)
+
+        await fetch("http://localhost:3001/emit", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                ticketId,
+                message
+            })
+
+        })
+
     }
+
 }
